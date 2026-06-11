@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>國中英文單字與克漏字測驗系統</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ec4b6;
+            --danger-color: #e71d36;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #2b2d42;
+            --border-color: #dddddd;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            gap: 15px;
+        }
+
+        .tab-btn {
+            background: #e0e0e0;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+        }
+
+        /* 檔案匯入區域 */
+        .import-box {
+            background: #eef5fc;
+            border: 2px dashed var(--primary-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .import-instructions {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        /* 表格樣式 */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: #333;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        .btn-delete {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        /* 克漏字測驗畫面 */
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .progress-bar-container {
+            width: 60%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            height: 12px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--success-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .quiz-body {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .sentence-prompt {
+            font-size: 1.4rem;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            color: #333;
+            letter-spacing: 0.5px;
+        }
+
+        .cloze-blank {
+            border-bottom: 3px solid var(--primary-color);
+            padding: 0 5px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .translation-hint {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            width: 250px;
+            outline: none;
+            text-align: center;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+        }
+
+        .btn-action {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-action:hover {
+            opacity: 0.9;
+        }
+
+        /* 滿分獎勵區塊 */
+        .perfect-score-banner {
+            text-align: center;
+            background: #e6f9f5;
+            border: 2px solid var(--success-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .perfect-score-banner h3 {
+            color: #155724;
+            margin-top: 0;
+            font-size: 1.5rem;
+        }
+
+        .perfect-img {
+            max-width: 200px;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* 測驗結果報告 */
+        .result-table {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .badge-success { background-color: #d4edda; color: #155724; }
+        .badge-danger { background-color: #f8d7da; color: #721c24; }
+
+        .hidden { display: none !important; }
+        
+        .center-btn-wrapper {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🎓 英文單字全方位學習工具</h1>
+
+        <div class="tabs">
+            <button class="tab-btn active" id="tab-list" onclick="switchTab('list')">📚 單字列表頁面</button>
+            <button class="tab-btn" id="tab-quiz" onclick="switchTab('quiz')">✍️ 克漏字頁面</button>
+        </div>
+
+        <div id="view-list" class="card">
+            <div class="import-box">
+                <div class="import-instructions">
+                    <strong>💡 匯入自訂單字庫：</strong><br>
+                    請準備一個 <code>.txt</code> 檔案，格式為「單字(詞性),中文,例句」，每行一筆。<br>
+                    範例：<code>banana(n.),香蕉,I like to eat bananas.</code>
+                </div>
+                <div>
+                    <input type="file" id="file-input" accept=".txt" style="display: none;" onchange="handleFileUpload(event)">
+                    <button class="btn-action" style="font-size: 0.9rem; padding: 8px 15px;" onclick="document.getElementById('file-input').click()">選擇檔案匯入</button>
+                </div>
+            </div>
+
+            <h2>我的單字清單</h2>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">單字 (詞性)</th>
+                            <th style="width: 20%;">中文翻譯</th>
+                            <th style="width: 45%;">例句</th>
+                            <th style="width: 10%;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vocab-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-quiz" class="card hidden">
+            <div id="quiz-gameplay">
+                <div class="quiz-header">
+                    <div>題目：<span id="current-question-num">1</span> / 5</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="quiz-progress"></div>
+                    </div>
+                </div>
+                <div class="quiz-body">
+                    <div class="sentence-prompt" id="quiz-sentence">
+                        </div>
+                    <div class="translation-hint" id="quiz-translation">
+                        </div>
+                    <div class="input-group">
+                        <input type="text" id="quiz-input" placeholder="請輸入挖空的單字..." autocomplete="off" onkeyup="handleQuizEnter(event)">
+                        <button class="btn-action" onclick="submitAnswer()">送出答案</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="quiz-summary" class="hidden">
+                <div id="perfect-score-zone" class="perfect-score-banner hidden">
+                    <h3>🎉 太厲害了！你獲得了滿分 5 / 5！ 🎉</h3>
+                    <img src="good.png" alt="Good Job!" class="perfect-img">
+                </div>
+
+                <h2>📊 測驗結果報告</h2>
+                <div class="table-responsive">
+                    <table class="result-table">
+                        <thead>
+                            <tr>
+                                <th>題號</th>
+                                <th>完整例句 (答案)</th>
+                                <th>你的作答</th>
+                                <th>結果</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summary-table-body">
+                            </tbody>
+                    </table>
+                </div>
+                <div class="center-btn-wrapper">
+                    <button class="btn-action" onclick="startNewQuiz()">再挑戰一次</button>
+                </div>
+            </div>
+
+            <div id="quiz-insufficient" class="hidden" style="text-align: center; color: #666;">
+                <p>⚠️ 單字庫裡的單字不足 5 個，無法組裝克漏字測驗！</p>
+                <p>請先前往單字列表頁面匯入或保留更多單字。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 內建 20 個國中程度基本英文單字
+        const defaultVocabulary = [
+            { word: "apple", pos: "n.", translation: "蘋果", sentence: "He took a bite out of the apple." },
+            { word: "beautiful", pos: "adj.", translation: "美麗的", sentence: "The sunset over the beach was beautiful." },
+            { word: "breakfast", pos: "n.", translation: "早餐", sentence: "Eating a healthy breakfast gives you energy." },
+            { word: "change", pos: "v.", translation: "改變", sentence: "The weather will change tomorrow." },
+            { word: "delicious", pos: "adj.", translation: "美味的", sentence: "My mother cooked a delicious dinner." },
+            { word: "doctor", pos: "n.", translation: "醫生", sentence: "You should see a doctor if you feel sick." },
+            { word: "excited", pos: "adj.", translation: "興奮的", sentence: "The children were excited about the trip." },
+            { word: "favorite", pos: "adj.", translation: "最喜愛的", sentence: "English is my favorite subject at school." },
+            { word: "hospital", pos: "n.", translation: "醫院", sentence: "She works as a nurse in a big hospital." },
+            { word: "interesting", pos: "adj.", translation: "有趣的", sentence: "I found an interesting book in the library." },
+            { word: "kitchen", pos: "n.", translation: "廚房", sentence: "Dad is baking a chocolate cake in the kitchen." },
+            { word: "library", pos: "n.", translation: "圖書館", sentence: "Students often study in the school library." },
+            { word: "market", pos: "n.", translation: "市場", sentence: "We bought some fresh vegetables at the market." },
+            { word: "remember", pos: "v.", translation: "記住", sentence: "Please remember to turn off the lights." },
+            { word: "shout", pos: "v.", translation: "喊叫", sentence: "Don't shout in the classroom; speak quietly." },
+            { word: "tomorrow", pos: "adv.", translation: "明天", sentence: "We will go to the zoo together tomorrow." },
+            { word: "umbrella", pos: "n.", translation: "雨傘", sentence: "Take an umbrella with you because it's raining." },
+            { word: "vacation", pos: "n.", translation: "假期", sentence: "Our family went to Japan during summer vacation." },
+            { word: "weather", pos: "n.", translation: "天氣", sentence: "What is the weather like in Taipei today?" },
+            { word: "yesterday", pos: "adv.", translation: "昨天", sentence: "I watched an amazing movie with my brother yesterday." }
+        ];
+
+        let vocabulary = JSON.parse(localStorage.getItem('clozeVocabulary')) || defaultVocabulary;
+
+        let quizQuestions = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+
+        window.onload = function() {
+            renderVocabTable();
+        };
+
+        function switchTab(tab) {
+            document.getElementById('view-list').classList.add('hidden');
+            document.getElementById('view-quiz').classList.add('hidden');
+            document.getElementById('tab-list').classList.remove('active');
+            document.getElementById('tab-quiz').classList.remove('active');
+
+            if (tab === 'list') {
+                document.getElementById('view-list').classList.remove('hidden');
+                document.getElementById('tab-list').classList.add('active');
+                renderVocabTable();
+            } else if (tab === 'quiz') {
+                document.getElementById('view-quiz').classList.remove('hidden');
+                document.getElementById('tab-quiz').classList.add('active');
+                startNewQuiz();
+            }
+        }
+
+        function renderVocabTable() {
+            localStorage.setItem('clozeVocabulary', JSON.stringify(vocabulary));
+            const tbody = document.getElementById('vocab-table-body');
+            tbody.innerHTML = '';
+
+            vocabulary.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${item.word}</strong> <span style="color:#777; font-size:0.9rem;">(${item.pos})</span></td>
+                    <td>${item.translation}</td>
+                    <td>${item.sentence}</td>
+                    <td><button class="btn-delete" onclick="deleteWord(${index})">刪除</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteWord(index) {
+            if (confirm(`確定要刪除單字「${vocabulary[index].word}」嗎？`)) {
+                vocabulary.splice(index, 1);
+                renderVocabTable();
+            }
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split(/\r?\n/);
+                let addedCount = 0;
+                let errorCount = 0;
+
+                lines.forEach(line => {
+                    if (!line.trim()) return;
+                    
+                    const parts = line.split(',');
+                    if (parts.length >= 3) {
+                        const rawWordInfo = parts[0].trim();
+                        const translation = parts[1].trim();
+                        const sentence = parts.slice(2).join(',').trim(); 
+
+                        const posMatch = rawWordInfo.match(/(.+?)\s*\((.+?)\)/);
+                        let word = rawWordInfo;
+                        let pos = "n.";
+
+                        if (posMatch) {
+                            word = posMatch[1].trim();
+                            pos = posMatch[2].trim();
+                        }
+
+                        if (word && translation && sentence) {
+                            vocabulary.push({
+                                word: word,
+                                pos: pos,
+                                translation: translation,
+                                sentence: sentence
+                            });
+                            addedCount++;
+                        } else {
+                            errorCount++;
+                        }
+                    } else {
+                        errorCount++;
+                    }
+                });
+
+                alert(`匯入完成！成功新增 ${addedCount} 個單字。${errorCount > 0 ? `有 ${errorCount} 行格式不符被跳過。` : ''}`);
+                renderVocabTable();
+                event.target.value = '';
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        /* --- 克漏字測驗引擎 --- */
+
+        function startNewQuiz() {
+            if (vocabulary.length < 5) {
+                document.getElementById('quiz-gameplay').classList.add('hidden');
+                document.getElementById('quiz-summary').classList.add('hidden');
+                document.getElementById('quiz-insufficient').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('quiz-insufficient').classList.add('hidden');
+            document.getElementById('quiz-summary').classList.add('hidden');
+            document.getElementById('perfect-score-zone').classList.add('hidden'); // 隱藏滿分Banner
+            document.getElementById('quiz-gameplay').classList.remove('hidden');
+
+            const shuffled = [...vocabulary].sort(() => 0.5 - Math.random());
+            quizQuestions = shuffled.slice(0, 5);
+            
+            currentQuestionIndex = 0;
+            userAnswers = [];
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const currentItem = quizQuestions[currentQuestionIndex];
+            
+            document.getElementById('current-question-num').innerText = currentQuestionIndex + 1;
+            const progressPercent = (currentQuestionIndex / 5) * 100;
+            document.getElementById('quiz-progress').style.width = `${progressPercent}%`;
+
+            const inputField = document.getElementById('quiz-input');
+            inputField.value = '';
+            inputField.focus();
+
+            const originalSentence = currentItem.sentence;
+            const targetWord = currentItem.word.toLowerCase();
+            
+            const regex = new RegExp(`\\b${targetWord}\\b`, 'gi');
+            
+            let blindedSentence = originalSentence.replace(regex, (match) => {
+                if (match.length <= 2) {
+                    return match[0] + "＿";
+                }
+                return match[0] + "＿".repeat(match.length - 2) + match[match.length - 1];
+            });
+
+            if (blindedSentence === originalSentence) {
+                const fallbackRegex = new RegExp(targetWord, 'gi');
+                blindedSentence = originalSentence.replace(fallbackRegex, (match) => {
+                    return match[0] + "＿".repeat(Math.max(1, match.length - 2)) + (match.length > 1 ? match[match.length - 1] : '');
+                });
+            }
+
+            const formattedSentence = blindedSentence.replace(/＿+/g, (match) => {
+                const len = match.length;
+                return `<span class="cloze-blank">${'_'.repeat(len + 1)}</span>`;
+            });
+
+            document.getElementById('quiz-sentence').innerHTML = formattedSentence;
+            document.getElementById('quiz-translation').innerText = `提示翻譯：${currentItem.translation}`;
+        }
+
+        function submitAnswer() {
+            const userInput = document.getElementById('quiz-input').value.trim();
+            userAnswers.push(userInput);
+
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < 5) {
+                showQuestion();
+            } else {
+                showQuizSummary();
+            }
+        }
+
+        function showQuizSummary() {
+            document.getElementById('quiz-gameplay').classList.add('hidden');
+            document.getElementById('quiz-summary').classList.remove('hidden');
+            document.getElementById('quiz-progress').style.width = '100%';
+
+            const tbody = document.getElementById('summary-table-body');
+            tbody.innerHTML = '';
+
+            let correctCount = 0;
+
+            quizQuestions.forEach((item, index) => {
+                const uAns = userAnswers[index];
+                const isCorrect = uAns.toLowerCase() === item.word.toLowerCase();
+                
+                if (isCorrect) correctCount++;
+                
+                const highlightedSentence = item.sentence.replace(new RegExp(`\\b${item.word}\\b`, 'gi'), `<strong><u>${item.word}</u></strong>`);
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${highlightedSentence}<br><small style="color: #666;">(${item.translation})</small></td>
+                    <td style="font-weight: bold; color: ${isCorrect ? 'var(--success-color)' : 'var(--danger-color)'}">${uAns || '(未填寫)'}</td>
+                    <td>
+                        <span class="status-badge ${isCorrect ? 'badge-success' : 'badge-danger'}">
+                            ${isCorrect ? '✓ 正確' : '✗ 錯誤'}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // ⭐ 滿分檢查邏輯：如果 5 題全部答對，展示滿分 Banner 區塊與 good.png
+            if (correctCount === 5) {
+                document.getElementById('perfect-score-zone').classList.remove('hidden');
+            }
+        }
+
+        function handleQuizEnter(event) {
+            if (event.key === 'Enter') {
+                submitAnswer();
+            }
+        }
+    </script>
+</body>
+</html>
